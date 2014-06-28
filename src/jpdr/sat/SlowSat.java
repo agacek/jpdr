@@ -1,6 +1,5 @@
 package jpdr.sat;
 
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -14,15 +13,10 @@ public class SlowSat {
 	}
 
 	private static Stream<Interpretation> getInterpretations(Set<String> vars) {
-		if (vars.isEmpty()) {
-			return Stream.of(Interpretation.EMPTY);
+		Stream<Interpretation> stream = Stream.of(Interpretation.EMPTY);
+		for (String var : vars) {
+			stream = stream.flatMap(i -> Stream.of(i.add(var, true), i.add(var, false)));
 		}
-
-		String first = vars.iterator().next();
-		Set<String> rest = new HashSet<>(vars);
-		rest.remove(first);
-
-		return getInterpretations(rest).flatMap(
-				i -> Stream.of(i.add(first, true), i.add(first, false)));
+		return stream;
 	}
 }
