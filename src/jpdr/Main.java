@@ -2,6 +2,10 @@ package jpdr;
 
 import java.util.Arrays;
 
+import syntax.CNF;
+import syntax.Clause;
+import syntax.Literal;
+
 
 public class Main {
 	public static void main(String[] args) {
@@ -12,5 +16,6 @@ public class Main {
 		Clause k = new Clause(Arrays.asList(a, b, c));
 		System.out.println(k);
 		System.out.println(k.negate());
+		System.out.println(new CNF(Arrays.asList(k, k)));
 	}
 }

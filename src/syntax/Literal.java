@@ -1,4 +1,4 @@
-package jpdr;
+package syntax;
 
 public class Literal {
 	public final String var;

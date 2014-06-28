@@ -1,4 +1,4 @@
-package jpdr;
+package syntax;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -20,6 +20,6 @@ public class Clause {
 	
 	@Override
 	public String toString() {
-		return literals.stream().map(Literal::toString).collect(joining(" \\/ "));
+		return literals.stream().map(Object::toString).collect(joining(" \\/ "));
 	}
 }
