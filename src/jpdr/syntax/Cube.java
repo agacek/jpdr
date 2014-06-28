@@ -17,6 +17,10 @@ public class Cube {
 		return new Clause(literals.stream().map(Literal::negate).collect(toSet()));
 	}
 
+	public Cube prime() {
+		return new Cube(literals.stream().map(Literal::prime).collect(toSet()));
+	}
+	
 	public Set<String> getVariables() {
 		return literals.stream().map(l -> l.var).collect(toSet());
 	}

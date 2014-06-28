@@ -17,6 +17,10 @@ public class Literal {
 		return new Literal(var, !positive);
 	}
 	
+	public Literal prime() {
+		return new Literal(var + "'", positive);
+	}
+	
 	@Override
 	public String toString() {
 		return (positive ? "" : "~") + var;

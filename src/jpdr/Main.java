@@ -31,10 +31,10 @@ public class Main {
 		System.out.println(k1.isSubclauseOf(k1.remove(b)));
 		System.out.println(k1.remove(b).isSubclauseOf(k1));
 
-		CNF cnf2 = new CNF(IntStream.range(0, 18)
+		CNF cnf2 = new CNF(IntStream.range(0, 15)
 				.mapToObj(i -> new Clause(Arrays.asList(new Literal("x" + i, false))))
 				.collect(toList()));
-		System.out.println(cnf2);
-		System.out.println(SlowSat.check(cnf2));
+		System.out.println(cnf2.prime());
+		System.out.println(SlowSat.check(cnf2.prime()));
 	}
 }

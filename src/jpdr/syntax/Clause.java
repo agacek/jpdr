@@ -23,6 +23,10 @@ public class Clause {
 		return new Cube(literals.stream().map(Literal::negate).collect(toSet()));
 	}
 	
+	public Clause prime() {
+		return new Clause(literals.stream().map(Literal::prime).collect(toSet()));
+	}
+	
 	public boolean isSubclauseOf(Clause other) {
 		return literals.stream().allMatch(other.literals::contains);
 	}
