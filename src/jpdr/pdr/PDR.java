@@ -1,15 +1,18 @@
 package jpdr.pdr;
 
+import java.util.Optional;
+
+import jpdr.eval.Interpretation;
+import jpdr.modelcheck.ModelChecker;
 import jpdr.syntax.CNF;
 
-public class PDR {
-	private final CNF I;
-	private final CNF T;
-	private final CNF P;
-
+public class PDR extends ModelChecker {
 	public PDR(CNF I, CNF T, CNF P) {
-		this.I = I;
-		this.T = T;
-		this.P = P;
+		super(I, T, P);
+	}
+
+	@Override
+	public Optional<Interpretation> check() {
+		return null;
 	}
 }
