@@ -1,11 +1,10 @@
-package syntax;
+package jpdr.syntax;
 
 public class Literal {
 	public final String var;
 	public final boolean positive;
 
 	public Literal(String var, boolean positive) {
-		super();
 		this.var = var;
 		this.positive = positive;
 	}
