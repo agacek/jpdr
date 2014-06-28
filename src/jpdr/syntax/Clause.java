@@ -23,6 +23,16 @@ public class Clause {
 		return new Cube(literals.stream().map(Literal::negate).collect(toSet()));
 	}
 	
+	public boolean isSubclauseOf(Clause other) {
+		return literals.stream().allMatch(other.literals::contains);
+	}
+	
+	public Clause remove(Literal literal) {
+		HashSet<Literal> set = new HashSet<>(literals);
+		set.remove(literal);
+		return new Clause(set);
+	}
+	
 	public Set<String> getVariables() {
 		return literals.stream().map(l -> l.var).collect(toSet());
 	}
