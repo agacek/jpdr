@@ -24,10 +24,6 @@ public class Var implements Expr {
 		return new Var(base, primes + n);
 	}
 	
-	public Var removePrimes() {
-		return new Var(base, 0);
-	}
-	
 	@Override
 	public Set<Var> getVars() {
 		return Collections.singleton(this);
