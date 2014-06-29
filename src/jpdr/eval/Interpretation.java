@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.joining;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import jpdr.expr.Expr;
 import jpdr.expr.Var;
@@ -28,8 +29,22 @@ public class Interpretation {
 		return map.get(key);
 	}
 
+	public boolean isEmpty() {
+		return map.isEmpty();
+	}
+
 	public boolean eval(Expr e) {
 		return e.accept(new Eval(this));
+	}
+
+	public Interpretation atStep(int n) {
+		Map<Var, Boolean> sliced = new HashMap<>();
+		for (Entry<Var, Boolean> e : map.entrySet()) {
+			if (e.getKey().primes == n) {
+				sliced.put(new Var(e.getKey().base), e.getValue());
+			}
+		}
+		return new Interpretation(sliced);
 	}
 
 	@Override
