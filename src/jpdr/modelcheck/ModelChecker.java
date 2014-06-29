@@ -3,14 +3,14 @@ package jpdr.modelcheck;
 import java.util.Optional;
 
 import jpdr.eval.Interpretation;
-import jpdr.syntax.CNF;
+import jpdr.expr.Expr;
 
 public abstract class ModelChecker {
-	protected final CNF I;
-	protected final CNF T;
-	protected final CNF P;
+	protected final Expr I;
+	protected final Expr T;
+	protected final Expr P;
 
-	public ModelChecker(CNF I, CNF T, CNF P) {
+	public ModelChecker(Expr I, Expr T, Expr P) {
 		this.I = I;
 		this.T = T;
 		this.P = P;

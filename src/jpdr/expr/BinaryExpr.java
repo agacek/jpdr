@@ -18,7 +18,7 @@ public class BinaryExpr implements Expr {
 	public BinaryExpr prime(int n) {
 		return new BinaryExpr(left.prime(n), op, right.prime(n));
 	}
-	
+
 	@Override
 	public Set<Var> getVars() {
 		HashSet<Var> set = new HashSet<>();
