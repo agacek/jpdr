@@ -30,6 +30,11 @@ public class Var implements Expr {
 	}
 
 	@Override
+	public Var prime() {
+		return prime(1);
+	}
+	
+	@Override
 	public String toString() {
 		return base + IntStream.range(0, primes).mapToObj(i -> "'").collect(joining());
 	}

@@ -1,8 +1,11 @@
 package jpdr.bmc;
 
 import static java.util.stream.IntStream.range;
-import static jpdr.expr.Expr.*;
+import static jpdr.expr.Expr.and;
+import static jpdr.expr.Expr.not;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import jpdr.eval.Interpretation;
@@ -19,15 +22,21 @@ public class BMC extends ModelChecker {
 	}
 
 	@Override
-	public Optional<Interpretation> check() {
-		for (int i = 0; i < depth; i++) {
-			Expr transitions = and(range(0, i).mapToObj(j -> T.prime(j)));
-			Expr query = and(I, transitions, not(P.prime(i)));
+	public List<Interpretation> check() {
+		List<Interpretation> result = new ArrayList<>();
+		
+		for (int k = 0; k < depth; k++) {
+			Expr transitions = and(range(0, k).mapToObj(j -> T.prime(j)));
+			Expr query = and(I, transitions, not(P.prime(k)));
 			Optional<Interpretation> model = SlowSat.check(query);
 			if (model.isPresent()) {
-				return model;
+				for (int i = 0; i <= k; i++) {
+					result.add(model.get().atStep(i));
+				}
+				return result;
 			}
 		}
-		return Optional.empty();
+		
+		return result;
 	}
 }

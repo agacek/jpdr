@@ -1,6 +1,6 @@
 package jpdr.modelcheck;
 
-import java.util.Optional;
+import java.util.List;
 
 import jpdr.eval.Interpretation;
 import jpdr.expr.Expr;
@@ -16,5 +16,5 @@ public abstract class ModelChecker {
 		this.P = P;
 	}
 	
-	public abstract Optional<Interpretation> check();
+	public abstract List<Interpretation> check();
 }

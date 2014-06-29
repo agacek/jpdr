@@ -4,11 +4,14 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import jpdr.expr.Expr;
 import jpdr.expr.Var;
+import jpdr.pdr.Cube;
 
 public class Interpretation {
 	public final static Interpretation EMPTY = new Interpretation(Collections.emptyMap());
@@ -29,10 +32,6 @@ public class Interpretation {
 		return map.get(key);
 	}
 
-	public boolean isEmpty() {
-		return map.isEmpty();
-	}
-
 	public boolean eval(Expr e) {
 		return e.accept(new Eval(this));
 	}
@@ -45,6 +44,19 @@ public class Interpretation {
 			}
 		}
 		return new Interpretation(sliced);
+	}
+
+	public Cube toCube() {
+		Set<Var> positives = new HashSet<>();
+		Set<Var> negatives = new HashSet<>();
+		for (Entry<Var, Boolean> e : map.entrySet()) {
+			if (e.getValue()) {
+				positives.add(e.getKey());
+			} else {
+				negatives.add(e.getKey());
+			}
+		}
+		return new Cube(positives, negatives);
 	}
 
 	@Override
