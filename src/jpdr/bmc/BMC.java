@@ -20,5 +20,6 @@ public class BMC extends ModelChecker {
 		for (int i = 0; i < depth; i++) {
 			
 		}
+		return null;
 	}
 }
