@@ -11,7 +11,7 @@ import java.util.Optional;
 import jpdr.eval.Interpretation;
 import jpdr.expr.Expr;
 import jpdr.modelcheck.ModelChecker;
-import jpdr.sat.SlowSat;
+import jpdr.sat.Sat;
 
 public class BMC extends ModelChecker {
 	private final int depth;
@@ -28,7 +28,7 @@ public class BMC extends ModelChecker {
 		for (int k = 0; k < depth; k++) {
 			Expr transitions = and(range(0, k).mapToObj(j -> T.prime(j)));
 			Expr query = and(I, transitions, not(P.prime(k)));
-			Optional<Interpretation> model = SlowSat.check(query);
+			Optional<Interpretation> model = Sat.check(query);
 			if (model.isPresent()) {
 				for (int i = 0; i <= k; i++) {
 					result.add(model.get().atStep(i));

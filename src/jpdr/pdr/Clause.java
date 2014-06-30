@@ -24,7 +24,7 @@ public class Clause {
 	public Clause(Stream<Var> positives, Stream<Var> negatives) {
 		this(positives.collect(toSet()), negatives.collect(toSet()));
 	}
-
+	
 	public Expr toExpr() {
 		return or(concat(positives.stream(), negatives.stream().map(v -> not(v))));
 	}

@@ -8,7 +8,6 @@ import static jpdr.expr.Expr.xor;
 import jpdr.eval.Interpretation;
 import jpdr.expr.Expr;
 import jpdr.expr.Var;
-import jpdr.modelcheck.ModelChecker;
 import jpdr.pdr.PDR;
 
 public class Main {
@@ -31,15 +30,21 @@ public class Main {
 		Expr T = and(Ta, Tb, Tc, Ta2, Tb2, Tc2);
 
 		Expr P = and(equal(a, a2), equal(b, b2), equal(c, c2));
+		check(I, T, P);
 
+		Expr P2 = not(and(a, b, c));
+		check(I, T, P2);
+	}
+
+	private static void check(Expr I, Expr T, Expr P) {
 		long start = System.currentTimeMillis();
 		// ModelChecker mc = new BMC(I, T, P, 10);
-		ModelChecker mc = new PDR(I, T, P);
+		PDR mc = new PDR(I, T, P);
 		for (Interpretation interp : mc.check()) {
 			System.out.println(interp);
 		}
 		long stop = System.currentTimeMillis();
 		System.out.println("Time: " + (stop - start) / 1000.0);
-		((PDR) mc).showFrames();
+		mc.showFrames();
 	}
 }

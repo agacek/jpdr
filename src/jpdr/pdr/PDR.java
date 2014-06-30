@@ -16,7 +16,7 @@ import jpdr.eval.TernaryEval;
 import jpdr.expr.Expr;
 import jpdr.expr.Var;
 import jpdr.modelcheck.ModelChecker;
-import jpdr.sat.SlowSat;
+import jpdr.sat.Sat;
 
 public class PDR extends ModelChecker {
 	private final List<Frame> R = new ArrayList<>();
@@ -33,7 +33,7 @@ public class PDR extends ModelChecker {
 		try {
 			while (true) {
 				Expr query = and(R.get(N).toExpr(), not(P));
-				Optional<Interpretation> res = SlowSat.check(query);
+				Optional<Interpretation> res = Sat.check(query);
 				if (res.isPresent()) {
 					Cube s = generalize(res.get().toCube(), query);
 					block(s, N);
@@ -53,13 +53,13 @@ public class PDR extends ModelChecker {
 
 	private void block(Cube s, int k) {
 		if (k == 0) {
-			if (SlowSat.check(and(I, s.toExpr())).isPresent()) {
+			if (Sat.check(and(I, s.toExpr())).isPresent()) {
 				extractCounterexample(s);
 			}
 		} else {
 			while (true) {
 				Expr query = and(R.get(k - 1).toExpr(), s.negate().toExpr(), T, s.prime().toExpr());
-				Optional<Interpretation> res = SlowSat.check(query);
+				Optional<Interpretation> res = Sat.check(query);
 				if (res.isPresent()) {
 					// Cube is unblocked
 					Cube t = generalize(res.get().atStep(0).toCube(), query);
@@ -97,7 +97,7 @@ public class PDR extends ModelChecker {
 		for (int k = 1; k < N; k++) {
 			for (Clause c : R.get(k).getClauses()) {
 				Expr query = and(R.get(k).toExpr(), T, c.prime().toExpr());
-				Optional<Interpretation> res = SlowSat.check(query);
+				Optional<Interpretation> res = Sat.check(query);
 				if (!res.isPresent()) {
 					R.get(k + 1).addClause(c);
 				}
