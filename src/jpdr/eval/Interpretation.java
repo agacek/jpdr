@@ -28,6 +28,12 @@ public class Interpretation {
 		return new Interpretation(newMap);
 	}
 
+	public Interpretation remove(Var key) {
+		HashMap<Var, Boolean> newMap = new HashMap<>(map);
+		newMap.remove(key);
+		return new Interpretation(newMap);
+	}
+
 	public Boolean get(Var key) {
 		return map.get(key);
 	}

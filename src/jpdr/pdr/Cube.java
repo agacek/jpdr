@@ -31,7 +31,7 @@ public class Cube {
 	public Expr toExpr() {
 		return and(concat(positives.stream(), negatives.stream().map(v -> not(v))));
 	}
-	
+
 	public Clause negate() {
 		return new Clause(negatives, positives);
 	}
@@ -39,16 +39,58 @@ public class Cube {
 	public Cube prime() {
 		return new Cube(positives.stream().map(Var::prime), negatives.stream().map(Var::prime));
 	}
-	
+
 	public Interpretation toInterpretation() {
 		Map<Var, Boolean> map = new HashMap<>();
 		positives.stream().forEach(v -> map.put(v, true));
 		negatives.stream().forEach(v -> map.put(v, false));
 		return new Interpretation(map);
 	}
-	
+
 	@Override
 	public String toString() {
 		return toExpr().toString();
+	}
+
+	public Set<Var> getVars() {
+		return concat(positives.stream(), negatives.stream()).collect(toSet());
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((negatives == null) ? 0 : negatives.hashCode());
+		result = prime * result + ((positives == null) ? 0 : positives.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof Cube)) {
+			return false;
+		}
+		Cube other = (Cube) obj;
+		if (negatives == null) {
+			if (other.negatives != null) {
+				return false;
+			}
+		} else if (!negatives.equals(other.negatives)) {
+			return false;
+		}
+		if (positives == null) {
+			if (other.positives != null) {
+				return false;
+			}
+		} else if (!positives.equals(other.positives)) {
+			return false;
+		}
+		return true;
 	}
 }

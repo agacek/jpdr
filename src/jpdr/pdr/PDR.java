@@ -12,7 +12,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import jpdr.eval.Interpretation;
+import jpdr.eval.TernaryEval;
 import jpdr.expr.Expr;
+import jpdr.expr.Var;
 import jpdr.modelcheck.ModelChecker;
 import jpdr.sat.SlowSat;
 
@@ -30,11 +32,11 @@ public class PDR extends ModelChecker {
 		R.add(new Frame(I));
 		try {
 			while (true) {
-				Optional<Interpretation> res = SlowSat.check(and(R.get(N).toExpr(), not(P)));
+				Expr query = and(R.get(N).toExpr(), not(P));
+				Optional<Interpretation> res = SlowSat.check(query);
 				if (res.isPresent()) {
-					Cube m = res.get().toCube();
-					int todo_generalize;
-					block(m, N);
+					Cube s = generalize(res.get().toCube(), query);
+					block(s, N);
 				} else {
 					propogateClauses();
 					if (existsEqualFrames()) {
@@ -50,7 +52,6 @@ public class PDR extends ModelChecker {
 	}
 
 	private void block(Cube s, int k) {
-		System.out.println("Blocking at " + k + ": " + s);
 		if (k == 0) {
 			Optional<Interpretation> res = SlowSat.check(and(I, s.toExpr()));
 			if (res.isPresent()) {
@@ -69,8 +70,7 @@ public class PDR extends ModelChecker {
 				Optional<Interpretation> res = SlowSat.check(query);
 				if (res.isPresent()) {
 					// Cube is unblocked
-					Cube t = res.get().atStep(0).toCube();
-					int todo_generalize;
+					Cube t = generalize(res.get().atStep(0).toCube(), query);
 					chains.put(t, s);
 					block(t, k - 1);
 				} else {
@@ -97,12 +97,6 @@ public class PDR extends ModelChecker {
 		}
 	}
 
-	private void showFrames() {
-		for (int k = 1; k <= N; k++) {
-			System.out.println("Frame " + k + ": " + R.get(k));
-		}
-	}
-
 	private boolean existsEqualFrames() {
 		for (int k = 1; k < N; k++) {
 			if (R.get(k).equals(R.get(k + 1))) {
@@ -110,5 +104,26 @@ public class PDR extends ModelChecker {
 			}
 		}
 		return false;
+	}
+
+	private Cube generalize(Cube c, Expr query) {
+		Interpretation interp = c.toInterpretation();
+		for (Var v : c.getVars()) {
+			Interpretation reduced = interp.remove(v);
+			if (query.accept(new TernaryEval(reduced)) != null) {
+				interp = reduced;
+			}
+		}
+		Cube c2 = interp.toCube();
+		if (!c.equals(c2)) {
+			System.out.println("Gen: " + c + " to " + c2);
+		}
+		return c2;
+	}
+
+	public void showFrames() {
+		for (int k = 1; k <= N; k++) {
+			System.out.println("Frame " + k + ": " + R.get(k));
+		}
 	}
 }
