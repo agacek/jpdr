@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.PriorityQueue;
 
 import jpdr.eval.Interpretation;
 import jpdr.eval.TernaryEval;
@@ -51,34 +52,38 @@ public class PDR extends ModelChecker {
 		}
 	}
 
-	private void block(Cube s, int k) {
-		if (k == 0) {
-			if (Sat.check(and(I, s.toExpr())).isPresent()) {
-				extractCounterexample(s);
-			}
-		} else {
-			while (true) {
+	private void block(Cube s0, int k0) {
+		PriorityQueue<Obligation> Q = new PriorityQueue<>();
+		Q.add(new Obligation(s0, k0));
+
+		while (!Q.isEmpty()) {
+			Obligation ob = Q.poll();
+			Cube s = ob.s;
+			int k = ob.k;
+
+			if (k == 0) {
+				if (Sat.check(and(I, s.toExpr())).isPresent()) {
+					extractCounterexample(s);
+				}
+			} else {
 				Expr query = and(R.get(k - 1).toExpr(), s.negate().toExpr(), T, s.prime().toExpr());
 				Optional<Interpretation> res = Sat.check(query);
 				if (res.isPresent()) {
 					// Cube is unblocked
 					Cube t = generalize(res.get().atStep(0).toCube(), query);
 					chains.put(t, s);
-					block(t, k - 1);
+					Q.add(new Obligation(t, k - 1));
+					Q.add(new Obligation(s, k));
 				} else {
-					break;
+					// Cube is blocked at k and all previous steps
+					for (int i = 1; i <= k; i++) {
+						R.get(i).addClause(s.negate());
+					} // Cube is bad in future states too
+					if (k < N) {
+						Q.add(new Obligation(s, k + 1));
+					}
 				}
 			}
-
-			// Cube is blocked at k and all previous steps
-			for (int i = 1; i <= k; i++) {
-				R.get(i).addClause(s.negate());
-			}
-		}
-		
-		// Cube is bad in future states too
-		if (k < N) {
-			block(s, k + 1);
 		}
 	}
 
@@ -89,8 +94,7 @@ public class PDR extends ModelChecker {
 			cubes.add(curr);
 			curr = chains.get(curr);
 		}
-		throw new Counterexample(cubes.stream().map(Cube::toInterpretation)
-				.collect(toList()));
+		throw new Counterexample(cubes.stream().map(Cube::toInterpretation).collect(toList()));
 	}
 
 	private void propogateClauses() {

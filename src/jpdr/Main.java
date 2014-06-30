@@ -51,14 +51,14 @@ public class Main {
 
 	private static void check(Expr I, Expr T, Expr P) {
 		long start = System.currentTimeMillis();
-		BMC mc = new BMC(I, T, P, 50);
-		//PDR mc = new PDR(I, T, P);
+		// BMC mc = new BMC(I, T, P, 50);
+		PDR mc = new PDR(I, T, P);
 		for (Interpretation interp : mc.check()) {
 			System.out.println(interp);
 		}
 		long stop = System.currentTimeMillis();
 		System.out.println("Time: " + (stop - start) / 1000.0);
-		//mc.showFrames();
+		mc.showFrames();
 		System.out.println();
 	}
 }
