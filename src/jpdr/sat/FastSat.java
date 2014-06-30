@@ -25,7 +25,7 @@ public class FastSat implements ExprVisitor<Integer> {
 	}
 
 	private final Expr expr;
-	private final ISolver solver = SolverFactory.instance().defaultSolver();
+	private final ISolver solver = SolverFactory.instance().lightSolver();
 	private final GateTranslator translator = new GateTranslator(solver);
 	private final BiMap<Var, Integer> map = new BiMap<>();
 	private int freeVar = 1;
