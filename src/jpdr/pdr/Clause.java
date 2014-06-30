@@ -51,4 +51,42 @@ public class Clause {
 		return new Clause(positives.stream().filter(var::equals), negatives.stream().filter(
 				var::equals));
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((negatives == null) ? 0 : negatives.hashCode());
+		result = prime * result + ((positives == null) ? 0 : positives.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof Clause)) {
+			return false;
+		}
+		Clause other = (Clause) obj;
+		if (negatives == null) {
+			if (other.negatives != null) {
+				return false;
+			}
+		} else if (!negatives.equals(other.negatives)) {
+			return false;
+		}
+		if (positives == null) {
+			if (other.positives != null) {
+				return false;
+			}
+		} else if (!positives.equals(other.positives)) {
+			return false;
+		}
+		return true;
+	}
 }

@@ -5,11 +5,11 @@ import static jpdr.expr.Expr.equal;
 import static jpdr.expr.Expr.not;
 import static jpdr.expr.Expr.or;
 import static jpdr.expr.Expr.xor;
-import jpdr.bmc.BMC;
 import jpdr.eval.Interpretation;
 import jpdr.expr.Expr;
 import jpdr.expr.Var;
 import jpdr.modelcheck.ModelChecker;
+import jpdr.pdr.PDR;
 
 public class Main {
 	public static void main(String[] args) {
@@ -27,7 +27,8 @@ public class Main {
 		Expr P = not(and(a, c));
 		
 		long start = System.currentTimeMillis();
-		ModelChecker mc = new BMC(I, T, P, 10);
+		// ModelChecker mc = new BMC(I, T, P, 10);
+		ModelChecker mc = new PDR(I, T, P);
 		for (Interpretation interp : mc.check()) {
 			System.out.println(interp);
 		}

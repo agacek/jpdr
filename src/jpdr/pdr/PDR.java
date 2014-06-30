@@ -1,11 +1,14 @@
 package jpdr.pdr;
 
+import static java.util.stream.Collectors.toList;
 import static jpdr.expr.Expr.and;
 import static jpdr.expr.Expr.not;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import jpdr.eval.Interpretation;
@@ -15,6 +18,7 @@ import jpdr.sat.SlowSat;
 
 public class PDR extends ModelChecker {
 	private final List<Frame> R = new ArrayList<>();
+	private final Map<Cube, Cube> chains = new HashMap<>();
 	private int N = 0;
 
 	public PDR(Expr I, Expr T, Expr P) {
@@ -46,21 +50,34 @@ public class PDR extends ModelChecker {
 	}
 
 	private void block(Cube s, int k) {
+		System.out.println("Blocking at " + k + ": " + s);
 		if (k == 0) {
 			Optional<Interpretation> res = SlowSat.check(and(I, s.toExpr()));
 			if (res.isPresent()) {
-				throw new Counterexample(s.getCounterexample());
+				List<Cube> cubes = new ArrayList<>();
+				Cube curr = s;
+				while (curr != null) {
+					cubes.add(curr);
+					curr = chains.get(curr);
+				}
+				throw new Counterexample(cubes.stream().map(Cube::toInterpretation)
+						.collect(toList()));
 			}
 		} else {
-			Expr query = and(R.get(k - 1).toExpr(), s.negate().toExpr(), T, s.prime().toExpr());
-			Optional<Interpretation> res = SlowSat.check(query);
-			if (res.isPresent()) {
-				// Cube is unblocked
-				Cube t = res.get().atStep(0).toCube();
-				int todo_set_t_cex_trace;
-				int todo_generalize;
-				block(t, k - 1);
+			while (true) {
+				Expr query = and(R.get(k - 1).toExpr(), s.negate().toExpr(), T, s.prime().toExpr());
+				Optional<Interpretation> res = SlowSat.check(query);
+				if (res.isPresent()) {
+					// Cube is unblocked
+					Cube t = res.get().atStep(0).toCube();
+					int todo_generalize;
+					chains.put(t, s);
+					block(t, k - 1);
+				} else {
+					break;
+				}
 			}
+
 			// Cube is blocked at k and all previous steps
 			for (int i = 1; i <= k; i++) {
 				R.get(i).addClause(s.negate());
@@ -77,6 +94,12 @@ public class PDR extends ModelChecker {
 					R.get(k + 1).addClause(c);
 				}
 			}
+		}
+	}
+
+	private void showFrames() {
+		for (int k = 1; k <= N; k++) {
+			System.out.println("Frame " + k + ": " + R.get(k));
 		}
 	}
 

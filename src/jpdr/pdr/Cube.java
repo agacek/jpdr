@@ -6,7 +6,8 @@ import static jpdr.expr.Expr.and;
 import static jpdr.expr.Expr.not;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -30,10 +31,6 @@ public class Cube {
 	public Expr toExpr() {
 		return and(concat(positives.stream(), negatives.stream().map(v -> not(v))));
 	}
-
-	public List<Interpretation> getCounterexample() {
-		return null;
-	}
 	
 	public Clause negate() {
 		return new Clause(negatives, positives);
@@ -41,6 +38,13 @@ public class Cube {
 
 	public Cube prime() {
 		return new Cube(positives.stream().map(Var::prime), negatives.stream().map(Var::prime));
+	}
+	
+	public Interpretation toInterpretation() {
+		Map<Var, Boolean> map = new HashMap<>();
+		positives.stream().forEach(v -> map.put(v, true));
+		negatives.stream().forEach(v -> map.put(v, false));
+		return new Interpretation(map);
 	}
 	
 	@Override

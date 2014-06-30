@@ -33,11 +33,16 @@ public class Frame {
 		Iterator<Clause> iter = clauses.iterator();
 		while (iter.hasNext()) {
 			Clause existing = iter.next();
-			if (incoming.isSubclauseOf(existing)) {
+			if (incoming.isSubclauseOf(existing) && !incoming.equals(existing)) {
 				System.err.println("Replacing " + existing + " with " + incoming);
 				iter.remove();
 			}
 		}
 		clauses.add(incoming);
+	}
+	
+	@Override
+	public String toString() {
+		return clauses.toString();
 	}
 }
