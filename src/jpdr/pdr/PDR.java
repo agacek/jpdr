@@ -53,16 +53,8 @@ public class PDR extends ModelChecker {
 
 	private void block(Cube s, int k) {
 		if (k == 0) {
-			Optional<Interpretation> res = SlowSat.check(and(I, s.toExpr()));
-			if (res.isPresent()) {
-				List<Cube> cubes = new ArrayList<>();
-				Cube curr = s;
-				while (curr != null) {
-					cubes.add(curr);
-					curr = chains.get(curr);
-				}
-				throw new Counterexample(cubes.stream().map(Cube::toInterpretation)
-						.collect(toList()));
+			if (SlowSat.check(and(I, s.toExpr())).isPresent()) {
+				extractCounterexample(s);
 			}
 		} else {
 			while (true) {
@@ -83,6 +75,22 @@ public class PDR extends ModelChecker {
 				R.get(i).addClause(s.negate());
 			}
 		}
+		
+		// Cube is bad in future states too
+		if (k < N) {
+			block(s, k + 1);
+		}
+	}
+
+	private void extractCounterexample(Cube s) {
+		List<Cube> cubes = new ArrayList<>();
+		Cube curr = s;
+		while (curr != null) {
+			cubes.add(curr);
+			curr = chains.get(curr);
+		}
+		throw new Counterexample(cubes.stream().map(Cube::toInterpretation)
+				.collect(toList()));
 	}
 
 	private void propogateClauses() {
@@ -114,11 +122,7 @@ public class PDR extends ModelChecker {
 				interp = reduced;
 			}
 		}
-		Cube c2 = interp.toCube();
-		if (!c.equals(c2)) {
-			System.out.println("Gen: " + c + " to " + c2);
-		}
-		return c2;
+		return interp.toCube();
 	}
 
 	public void showFrames() {
