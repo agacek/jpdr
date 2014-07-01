@@ -119,19 +119,18 @@ public class PDR extends ModelChecker {
 		return false;
 	}
 
-	public static Cube generalize(Cube c, Expr query) {
+	private Cube generalize(Cube c, Expr query) {
+		return fastGeneralize(c, query);
+	}
+
+	private Cube fastGeneralize(Cube c, Expr query) {
 		Interpretation interp = c.toInterpretation();
-		Interpretation init = interp;
+		assert query.accept(new TernaryEval(interp));
 		for (Var v : c.getVars()) {
 			Interpretation reduced = interp.remove(v);
 			if (query.accept(new TernaryEval(reduced)) != null) {
 				interp = reduced;
 			}
-		}
-		if (init == interp) {
-			System.out.println("Failed to generalize: " + c);
-		} else {
-			System.out.println("GENERALIZED TO " +  interp);
 		}
 		return interp.toCube();
 	}
