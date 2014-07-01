@@ -19,8 +19,8 @@ import jpdr.pdr.PDR;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
-		// aiger();
-		homemade();
+		aiger();
+		// homemade();
 	}
 
 	private static void homemade() {

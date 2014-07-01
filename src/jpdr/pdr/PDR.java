@@ -70,8 +70,8 @@ public class PDR extends ModelChecker {
 				Expr query = and(R.get(k - 1).toExpr(), s.negate().toExpr(), T, s.prime().toExpr());
 				Optional<Interpretation> res = Sat.check(query);
 				if (res.isPresent()) {
-					// Cube is unblocked
-					Cube t = generalize(res.get().atStep(0).toCube(), query);
+					// Cube is unblocked				
+					Cube t = generalize(res.get().toCube(), query).toInterpretation().atStep(0).toCube();
 					chains.put(t, s);
 					Q.add(new Obligation(t, k - 1));
 					Q.add(new Obligation(s, k));
