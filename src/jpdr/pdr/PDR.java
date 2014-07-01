@@ -36,8 +36,7 @@ public class PDR extends ModelChecker {
 				Expr query = and(R.get(N).toExpr(), not(P));
 				Optional<Interpretation> res = Sat.check(query);
 				if (res.isPresent()) {
-					Cube s = generalize(res.get().toCube(), query);
-					block(s, N);
+					block(res.get().toCube(), N);
 				} else {
 					propogateClauses();
 					if (existsEqualFrames()) {
@@ -70,16 +69,25 @@ public class PDR extends ModelChecker {
 				Expr query = and(R.get(k - 1).toExpr(), s.negate().toExpr(), T, s.prime().toExpr());
 				Optional<Interpretation> res = Sat.check(query);
 				if (res.isPresent()) {
-					// Cube is unblocked				
-					Cube t = generalize(res.get().toCube(), query).toInterpretation().atStep(0).toCube();
+					// Cube is unblocked
+					Cube t = res.get().atStep(0).toCube();
 					chains.put(t, s);
 					Q.add(new Obligation(t, k - 1));
 					Q.add(new Obligation(s, k));
 				} else {
-					// Cube is blocked at k and all previous steps
+					// Cube is blocked, generalize and block at k and all
+					// previous steps
+					Cube t = generalize(s, query);
+					System.out.println(s);
+					System.out.println(query);
+					System.out.println(t);
+					System.out.println();
+
 					for (int i = 1; i <= k; i++) {
-						R.get(i).addClause(s.negate());
-					} // Cube is bad in future states too
+						R.get(i).addClause(t.negate());
+					}
+
+					// Original cube is bad in future states too
 					if (k < N) {
 						Q.add(new Obligation(s, k + 1));
 					}
@@ -120,12 +128,12 @@ public class PDR extends ModelChecker {
 	}
 
 	private Cube generalize(Cube c, Expr query) {
-		return fastGeneralize(c, query);
-	}
+		// TODO: How to really generalize? We need to modify c and c' in sync
+		// with each other. What do we do about inputs? How do we even know what
+		// variables are inputs?
 
-	private Cube fastGeneralize(Cube c, Expr query) {
 		Interpretation interp = c.toInterpretation();
-		assert query.accept(new TernaryEval(interp));
+		assert !query.accept(new TernaryEval(interp));
 		for (Var v : c.getVars()) {
 			Interpretation reduced = interp.remove(v);
 			if (query.accept(new TernaryEval(reduced)) != null) {

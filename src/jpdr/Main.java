@@ -19,11 +19,25 @@ import jpdr.pdr.PDR;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
-		aiger();
-		// homemade();
+		// aiger();
+		homemade1();
 	}
 
-	private static void homemade() {
+	private static void homemade1() {
+		Var a = new Var("a");
+		Var b = new Var("b");
+
+		Expr I = not(or(a, b));
+
+		Expr Ta = equal(a.prime(), not(a));
+		Expr Tb = equal(b.prime(), xor(b, a));
+		Expr T = and(Ta, Tb);
+
+		Expr P = not(and(a, b));
+		check(I, T, P);
+	}
+
+	private static void homemade2() {
 		Var a = new Var("a");
 		Var b = new Var("b");
 		Var c = new Var("c");
