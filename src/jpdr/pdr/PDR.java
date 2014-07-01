@@ -45,6 +45,7 @@ public class PDR extends ModelChecker {
 					}
 					R.add(new Frame());
 					N++;
+					System.out.println("Frames: " + N);
 				}
 			}
 		} catch (Counterexample cex) {
@@ -118,13 +119,19 @@ public class PDR extends ModelChecker {
 		return false;
 	}
 
-	private Cube generalize(Cube c, Expr query) {
+	public static Cube generalize(Cube c, Expr query) {
 		Interpretation interp = c.toInterpretation();
+		Interpretation init = interp;
 		for (Var v : c.getVars()) {
 			Interpretation reduced = interp.remove(v);
 			if (query.accept(new TernaryEval(reduced)) != null) {
 				interp = reduced;
 			}
+		}
+		if (init == interp) {
+			System.out.println("Failed to generalize: " + c);
+		} else {
+			System.out.println("GENERALIZED TO " +  interp);
 		}
 		return interp.toCube();
 	}
