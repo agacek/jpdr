@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import jpdr.eval.Interpretation;
 import jpdr.eval.TernaryEval;
@@ -20,12 +21,14 @@ import jpdr.modelcheck.ModelChecker;
 import jpdr.sat.Sat;
 
 public class PDR extends ModelChecker {
+	private final Set<Var> stateVars;
 	private final List<Frame> R = new ArrayList<>();
 	private final Map<Cube, Cube> chains = new HashMap<>();
 	private int N = 0;
 
-	public PDR(Expr I, Expr T, Expr P) {
+	public PDR(Expr I, Expr T, Expr P, Set<Var> stateVars) {
 		super(I, T, P);
+		this.stateVars = stateVars;
 	}
 
 	@Override
@@ -36,7 +39,9 @@ public class PDR extends ModelChecker {
 				Expr query = and(R.get(N).toExpr(), not(P));
 				Optional<Interpretation> res = Sat.check(query);
 				if (res.isPresent()) {
-					block(res.get().toCube(), N);
+					Cube m = res.get().toCube();
+					Cube t = generalizeSat(m, query);
+					block(t, N);
 				} else {
 					propogateClauses();
 					if (existsEqualFrames()) {
@@ -71,18 +76,16 @@ public class PDR extends ModelChecker {
 				if (res.isPresent()) {
 					// Cube is unblocked
 					Cube t = res.get().atStep(0).toCube();
+					int todo_generalize_sat;
 					chains.put(t, s);
 					Q.add(new Obligation(t, k - 1));
 					Q.add(new Obligation(s, k));
 				} else {
 					// Cube is blocked, generalize and block at k and all
 					// previous steps
-					Cube t = generalize(s, query);
-					System.out.println(s);
-					System.out.println(query);
-					System.out.println(t);
-					System.out.println();
-
+					int todo_api_all_wrong;
+					Cube t = generalizeUnsat(s, query);
+					
 					for (int i = 1; i <= k; i++) {
 						R.get(i).addClause(t.negate());
 					}
@@ -127,13 +130,28 @@ public class PDR extends ModelChecker {
 		return false;
 	}
 
-	private Cube generalize(Cube c, Expr query) {
+	private Cube generalizeSat(Cube c, Expr query) {
+		Interpretation interp = c.toInterpretation();
+		assert query.accept(new TernaryEval(interp));
+
+		for (Var v : c.getVars()) {
+			Interpretation reduced = interp.remove(v);
+			if (query.accept(new TernaryEval(reduced)) != null) {
+				interp = reduced;
+			}
+		}
+		return interp.toCube();
+	}
+	
+	private Cube generalizeUnsat(Cube c, Expr query) {
 		// TODO: How to really generalize? We need to modify c and c' in sync
 		// with each other. What do we do about inputs? How do we even know what
 		// variables are inputs?
 
 		Interpretation interp = c.toInterpretation();
 		assert !query.accept(new TernaryEval(interp));
+		
+		interp = interp.atStep(0).filterKeys(stateVars::contains);
 		for (Var v : c.getVars()) {
 			Interpretation reduced = interp.remove(v);
 			if (query.accept(new TernaryEval(reduced)) != null) {

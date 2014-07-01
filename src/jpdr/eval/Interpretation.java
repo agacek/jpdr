@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import jpdr.expr.Expr;
 import jpdr.expr.Var;
@@ -69,5 +70,15 @@ public class Interpretation {
 	public String toString() {
 		return map.entrySet().stream().map(e -> e.getKey() + " -> " + e.getValue())
 				.collect(joining(", "));
+	}
+
+	public Interpretation filterKeys(Predicate<Var> p) {
+		Map<Var, Boolean> filtered = new HashMap<>();
+		for (Entry<Var, Boolean> e : map.entrySet()) {
+			if (p.test(e.getKey())) {
+				filtered.put(e.getKey(), e.getValue());
+			}
+		}
+		return new Interpretation(filtered);
 	}
 }
