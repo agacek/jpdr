@@ -74,14 +74,16 @@ public class Main {
 	}
 
 	private static void aiger() throws IOException, FileNotFoundException {
+		JaigerToExpr reader;
 		try (InputStream in = new FileInputStream("c:/desktop/test.aig")) {
-			JaigerToExpr reader = new JaigerToExpr(in);
+			reader = new JaigerToExpr(in);
 			reader.parse();
-			Expr I = reader.getInitial();
-			Expr T = reader.getTransition();
-			Expr P = reader.getProperty();
-			check(I, T, P);
 		}
+		
+		Expr I = reader.getInitial();
+		Expr T = reader.getTransition();
+		Expr P = reader.getProperty();
+		check(I, T, P);
 	}
 
 	private static void check(Expr I, Expr T, Expr P) {
