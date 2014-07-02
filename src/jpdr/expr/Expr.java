@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public interface Expr {
+public interface Expr extends Exprable {
 	public Expr prime(int n);
 
 	public Set<Var> getVars();
@@ -14,32 +14,35 @@ public interface Expr {
 	public static Var var(String name) {
 		return new Var(name);
 	}
-	
+
 	public static BoolExpr TRUE = new BoolExpr(true);
 	public static BoolExpr FALSE = new BoolExpr(false);
 
-	public static Expr and(Expr... e) {
+	public static Expr and(Exprable... e) {
 		return and(Arrays.asList(e).stream());
 	}
-	
-	public static Expr and(Stream<Expr> es) {
-		return es.reduce((l, r) -> new BinaryExpr(l, BinaryOp.AND, r)).orElse(TRUE);
+
+	public static Expr and(Stream<? extends Exprable> es) {
+		return es.map(Exprable::toExpr).reduce((l, r) -> new BinaryExpr(l, BinaryOp.AND, r))
+				.orElse(TRUE);
 	}
 
-	public static Expr or(Expr... e) {
+	public static Expr or(Exprable... e) {
 		return or(Arrays.asList(e).stream());
 	}
-	
-	public static Expr or(Stream<Expr> es) {
-		return es.reduce((l, r) -> new BinaryExpr(l, BinaryOp.OR, r)).orElse(FALSE);
+
+	public static Expr or(Stream<? extends Exprable> es) {
+		return es.map(Exprable::toExpr).reduce((l, r) -> new BinaryExpr(l, BinaryOp.OR, r))
+				.orElse(FALSE);
 	}
 
-	public static Expr xor(Expr... e) {
+	public static Expr xor(Exprable... e) {
 		return xor(Arrays.asList(e).stream());
 	}
-	
-	public static Expr xor(Stream<Expr> es) {
-		return es.reduce((l, r) -> new BinaryExpr(l, BinaryOp.XOR, r)).orElse(FALSE);
+
+	public static Expr xor(Stream<? extends Exprable> es) {
+		return es.map(Exprable::toExpr).reduce((l, r) -> new BinaryExpr(l, BinaryOp.XOR, r))
+				.orElse(FALSE);
 	}
 
 	public static Expr equal(Expr left, Expr right) {
@@ -53,8 +56,13 @@ public interface Expr {
 	public static Expr not(Expr expr) {
 		return new NotExpr(expr);
 	}
-	
+
 	public default Expr prime() {
 		return prime(1);
+	}
+
+	@Override
+	public default Expr toExpr() {
+		return this;
 	}
 }

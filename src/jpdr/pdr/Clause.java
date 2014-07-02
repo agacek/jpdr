@@ -10,9 +10,10 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import jpdr.expr.Expr;
+import jpdr.expr.Exprable;
 import jpdr.expr.Var;
 
-public class Clause {
+public class Clause implements Exprable {
 	public final Set<Var> positives;
 	public final Set<Var> negatives;
 
@@ -25,6 +26,7 @@ public class Clause {
 		this(positives.collect(toSet()), negatives.collect(toSet()));
 	}
 	
+	@Override
 	public Expr toExpr() {
 		return or(concat(positives.stream(), negatives.stream().map(v -> not(v))));
 	}
@@ -50,6 +52,10 @@ public class Clause {
 	public Clause remove(Var var) {
 		return new Clause(positives.stream().filter(var::equals), negatives.stream().filter(
 				var::equals));
+	}
+
+	public Set<Var> getVars() {
+		return concat(positives.stream(), negatives.stream()).collect(toSet());
 	}
 
 	@Override

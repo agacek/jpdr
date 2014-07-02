@@ -13,9 +13,10 @@ import java.util.stream.Stream;
 
 import jpdr.eval.Interpretation;
 import jpdr.expr.Expr;
+import jpdr.expr.Exprable;
 import jpdr.expr.Var;
 
-public class Cube {
+public class Cube implements Exprable {
 	public final Set<Var> positives;
 	public final Set<Var> negatives;
 
@@ -28,6 +29,7 @@ public class Cube {
 		this(positives.collect(toSet()), negatives.collect(toSet()));
 	}
 
+	@Override
 	public Expr toExpr() {
 		return and(concat(positives.stream(), negatives.stream().map(v -> not(v))));
 	}
@@ -92,5 +94,10 @@ public class Cube {
 			return false;
 		}
 		return true;
+	}
+
+	public Cube atStep(int n) {
+		return new Cube(positives.stream().filter(v -> v.primes == n), negatives.stream().filter(
+				v -> v.primes == n));
 	}
 }

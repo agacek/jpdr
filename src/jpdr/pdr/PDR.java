@@ -21,14 +21,12 @@ import jpdr.modelcheck.ModelChecker;
 import jpdr.sat.Sat;
 
 public class PDR extends ModelChecker {
-	private final Set<Var> stateVars;
 	private final List<Frame> R = new ArrayList<>();
 	private final Map<Cube, Cube> chains = new HashMap<>();
 	private int N = 0;
 
-	public PDR(Expr I, Expr T, Expr P, Set<Var> stateVars) {
+	public PDR(Expr I, Expr T, Expr P) {
 		super(I, T, P);
-		this.stateVars = stateVars;
 	}
 
 	@Override
@@ -36,7 +34,7 @@ public class PDR extends ModelChecker {
 		R.add(new Frame(I));
 		try {
 			while (true) {
-				Expr query = and(R.get(N).toExpr(), not(P));
+				Expr query = and(R.get(N), not(P));
 				Optional<Interpretation> res = Sat.check(query);
 				if (res.isPresent()) {
 					Cube m = res.get().toCube();
@@ -66,28 +64,29 @@ public class PDR extends ModelChecker {
 			Cube s = ob.s;
 			int k = ob.k;
 
+			assert s.positives.stream().allMatch(v -> v.primes == 0);
+			assert s.negatives.stream().allMatch(v -> v.primes == 0);
+
 			if (k == 0) {
-				if (Sat.check(and(I, s.toExpr())).isPresent()) {
+				if (Sat.check(and(I, s)).isPresent()) {
 					extractCounterexample(s);
 				}
 			} else {
-				Expr query = and(R.get(k - 1).toExpr(), s.negate().toExpr(), T, s.prime().toExpr());
+				Expr query = and(R.get(k - 1), s.negate(), T, s.prime());
 				Optional<Interpretation> res = Sat.check(query);
 				if (res.isPresent()) {
 					// Cube is unblocked
-					Cube t = res.get().atStep(0).toCube();
-					int todo_generalize_sat;
+					Cube t = generalizeSat(res.get().toCube(), query).atStep(0);
 					chains.put(t, s);
 					Q.add(new Obligation(t, k - 1));
 					Q.add(new Obligation(s, k));
 				} else {
 					// Cube is blocked, generalize and block at k and all
 					// previous steps
-					int todo_api_all_wrong;
-					Cube t = generalizeUnsat(s, query);
-					
+					Clause t = generalizeUnsat(s.negate(), and(R.get(k - 1), T));
+
 					for (int i = 1; i <= k; i++) {
-						R.get(i).addClause(t.negate());
+						R.get(i).addClause(t);
 					}
 
 					// Original cube is bad in future states too
@@ -112,7 +111,7 @@ public class PDR extends ModelChecker {
 	private void propogateClauses() {
 		for (int k = 1; k < N; k++) {
 			for (Clause c : R.get(k).getClauses()) {
-				Expr query = and(R.get(k).toExpr(), T, c.prime().toExpr());
+				Expr query = and(R.get(k), T, c.prime());
 				Optional<Interpretation> res = Sat.check(query);
 				if (!res.isPresent()) {
 					R.get(k + 1).addClause(c);
@@ -134,31 +133,43 @@ public class PDR extends ModelChecker {
 		Interpretation interp = c.toInterpretation();
 		assert query.accept(new TernaryEval(interp));
 
+		// Only generalize over current state variables
 		for (Var v : c.getVars()) {
-			Interpretation reduced = interp.remove(v);
-			if (query.accept(new TernaryEval(reduced)) != null) {
-				interp = reduced;
+			if (v.primes == 0) {
+				Interpretation reduced = interp.remove(v);
+				if (query.accept(new TernaryEval(reduced)) != null) {
+					interp = reduced;
+				}
 			}
 		}
 		return interp.toCube();
 	}
-	
-	private Cube generalizeUnsat(Cube c, Expr query) {
-		// TODO: How to really generalize? We need to modify c and c' in sync
-		// with each other. What do we do about inputs? How do we even know what
-		// variables are inputs?
 
-		Interpretation interp = c.toInterpretation();
-		assert !query.accept(new TernaryEval(interp));
-		
-		interp = interp.atStep(0).filterKeys(stateVars::contains);
-		for (Var v : c.getVars()) {
-			Interpretation reduced = interp.remove(v);
-			if (query.accept(new TernaryEval(reduced)) != null) {
-				interp = reduced;
+	// Inductively generalize 'clause' with respect to 'relative'
+	private Clause generalizeUnsat(Clause clause, Expr relative) {
+		Clause curr = clause;
+
+		for (Var v : clause.getVars()) {
+			Clause reduced = curr.remove(v);
+
+			// Clause cannot overlap initial states
+			if (Sat.check(and(I, curr)).isPresent()) {
+				continue;
+			}
+
+			Expr query = and(relative, curr, curr.negate().prime());
+			if (!Sat.check(query).isPresent()) {
+				curr = reduced;
 			}
 		}
-		return interp.toCube();
+
+		if (curr != clause) {
+			System.out.println("Before: " + clause);
+			System.out.println("After: " + curr);
+			System.out.println();
+		}
+
+		return curr;
 	}
 
 	public void showFrames() {

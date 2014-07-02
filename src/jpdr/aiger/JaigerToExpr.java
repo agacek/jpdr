@@ -22,7 +22,6 @@ package jpdr.aiger;
  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  IN THE SOFTWARE.
  ***************************************************************************/
-import static java.util.stream.Collectors.toSet;
 import static jpdr.expr.Expr.FALSE;
 import static jpdr.expr.Expr.and;
 import static jpdr.expr.Expr.equal;
@@ -33,7 +32,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import jpdr.expr.Expr;
 import jpdr.expr.Var;
@@ -199,10 +197,6 @@ public class JaigerToExpr {
 		System.out.println();
 		
 		return and(P, and(latched.stream().map(e -> not(e))));
-	}
-	
-	public Set<Var> getStateVars() {
-		return latched.stream().flatMap(e -> e.getVars().stream()).collect(toSet());
 	}
 
 	public Expr getTransition() {

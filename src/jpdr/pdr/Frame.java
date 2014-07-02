@@ -8,8 +8,9 @@ import java.util.Iterator;
 import java.util.Set;
 
 import jpdr.expr.Expr;
+import jpdr.expr.Exprable;
 
-public class Frame {
+public class Frame implements Exprable {
 	private final Expr expr;
 	private final Set<Clause> clauses = new HashSet<>();
 
@@ -21,6 +22,7 @@ public class Frame {
 		this.expr = TRUE;
 	}
 
+	@Override
 	public Expr toExpr() {
 		return and(expr, and(clauses.stream().map(Clause::toExpr)));
 	}
